@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Simulator - ZT Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-red-900 via-black to-gray-900 text-white min-h-screen">
+    <div class="container mx-auto p-6">
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="skull" class="w-10 h-10 text-red-500"></i>
+                <h1 class="text-4xl font-bold text-red-500">ATTACKER CONTROL PANEL</h1>
+            </div>
+            <p class="text-gray-400">Simulating a compromised service attempting lateral movement</p>
+        </div>
+
+        <div class="bg-gray-800/50 backdrop-blur border border-red-500/30 rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="target" class="w-5 h-5 text-red-400"></i>
+                Target Configuration
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Victim Cluster IP</label>
+                    <input 
+                        type="text" 
+                        id="targetIp" 
+                        value="http://192.168.1.100:30080"
+                        placeholder="http://victim-ip:port"
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                    />
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Compromised Service</label>
+                    <select id="attackerService" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white">
+                        <option value="malicious-service">malicious-service</option>
+                        <option value="auth-service">auth-service</option>
+                        <option value="payment-service">payment-service (legitimate)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800/50 backdrop-blur border border-red-500/30 rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="sword" class="w-5 h-5 text-red-400"></i>
+                Attack Scenarios
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-red-500/50 transition">
+                    <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+                        <span class="text-red-500">1.</span> Lateral Movement Attack
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-3">
+                        Compromised service attempts to access protected user data
+                    </p>
+                    <button onclick="launchAttack('lateral')" 
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                        Launch Attack
+                    </button>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-red-500/50 transition">
+                    <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+                        <span class="text-red-500">2.</span> Data Exfiltration
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-3">
+                        Attempt to extract sensitive user information
+                    </p>
+                    <button onclick="launchAttack('exfiltration')" 
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                        Launch Attack
+                    </button>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-red-500/50 transition">
+                    <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+                        <span class="text-red-500">3.</span> Service Enumeration
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-3">
+                        Discover and probe other services in cluster
+                    </p>
+                    <button onclick="launchAttack('enumeration')" 
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                        Launch Attack
+                    </button>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-red-500/50 transition">
+                    <h3 class="font-semibold text-lg mb-2 flex items-center gap-2">
+                        <span class="text-red-500">4.</span> Privilege Escalation
+                    </h3>
+                    <p class="text-sm text-gray-400 mb-3">
+                        Attempt to access admin endpoints
+                    </p>
+                    <button onclick="launchAttack('privilege')" 
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                        Launch Attack
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-700">
+                <button onclick="launchAutomatedAttack()" 
+                        class="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    Launch Full Automated Attack Sequence
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gray-800/50 backdrop-blur border border-red-500/30 rounded-xl p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <i data-lucide="activity" class="w-5 h-5 text-red-400"></i>
+                Attack Log
+            </h2>
+            <div id="attackLog" class="space-y-2 max-h-96 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500 text-center py-8">No attacks launched yet...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('attackLog');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const colors = {
+                info: 'text-gray-400',
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400'
+            };
+            
+            const icons = {
+                info: '→',
+                success: '✓',
+                error: '✗',
+                warning: '⚠'
+            };
+            
+            // Clear placeholder
+            if (log.querySelector('.text-gray-500')) {
+                log.innerHTML = '';
+            }
+            
+            const entry = document.createElement('div');
+            entry.className = `${colors[type]} p-2 bg-gray-900/30 rounded`;
+            entry.innerHTML = `[${timestamp}] ${icons[type]} ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+
+        async function launchAttack(scenario) {
+            const targetIp = document.getElementById('targetIp').value;
+            const service = document.getElementById('attackerService').value;
+            
+            addLog(`Initiating ${scenario} attack from ${service}...`, 'warning');
+            
+            const attacks = {
+                lateral: {
+                    target: '/user-data',
+                    description: 'Attempting to access user-service protected data'
+                },
+                exfiltration: {
+                    target: '/user-data',
+                    description: 'Attempting bulk data extraction'
+                },
+                enumeration: {
+                    target: '/health',
+                    description: 'Scanning for available services'
+                },
+                privilege: {
+                    target: '/admin',
+                    description: 'Attempting admin endpoint access'
+                }
+            };
+            
+            const attack = attacks[scenario];
+            const spiffeId = `spiffe://example.org/${service}`;
+            
+            addLog(`Target: ${targetIp}${attack.target}`, 'info');
+            addLog(`Spoofed Identity: ${spiffeId}`, 'info');
+            
+            try {
+                const response = await fetch(`${targetIp}${attack.target}`, {
+                    method: 'GET',
+                    headers: {
+                        'x-spiffe-id': spiffeId,
+                        'x-attack-type': scenario
+                    },
+                    mode: 'cors'
+                });
+                
+                if (response.status === 403) {
+                    addLog(`❌ BLOCKED by Zero Trust! (HTTP 403)`, 'error');
+                    addLog(`Defense: OPA policy denied ${service} → ${attack.target}`, 'error');
+                } else if (response.status === 200) {
+                    addLog(`⚠ Attack succeeded! Data accessed (HTTP 200)`, 'warning');
+                    const data = await response.json();
+                    addLog(`Exfiltrated: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    addLog(`Unexpected response: HTTP ${response.status}`, 'info');
+                }
+            } catch (error) {
+                addLog(`Connection error: ${error.message}`, 'error');
+                addLog(`Tip: Ensure victim cluster is accessible at ${targetIp}`, 'warning');
+            }
+            
+            addLog(`Attack attempt logged by defender...`, 'info');
+            addLog('───────────────────────────────────────', 'info');
+        }
+
+        async function launchAutomatedAttack() {
+            addLog('🚨 INITIATING AUTOMATED ATTACK SEQUENCE', 'warning');
+            addLog('═══════════════════════════════════════', 'warning');
+            
+            const scenarios = ['lateral', 'exfiltration', 'enumeration', 'privilege'];
+            
+            for (let i = 0; i < scenarios.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                await launchAttack(scenarios[i]);
+            }
+            
+            addLog('═══════════════════════════════════════', 'info');
+            addLog('✓ Automated attack sequence complete', 'success');
+        }
+
+        // Initial log
+        addLog('Attack simulator ready. Configure target and launch attack.', 'success');
+    </script>
+</body>
+</html>
