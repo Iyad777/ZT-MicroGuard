@@ -12,12 +12,23 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprint(w, `{"message": "Payment Service is running. It is the legitimate caller."}`)
 }
 
+// NEW: Prefixed health endpoint
+func paymentsHealthHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, `{"status": "ok", "service": "payment-service", "endpoint": "payments-health"}`)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, `{"status": "ok", "service": "payment-service"}`)
+}
+
 func main() {
     http.HandleFunc("/", rootHandler)
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.WriteHeader(http.StatusOK)
-        fmt.Fprint(w, `{"status": "ok", "service": "payment-service"}`)
-    })
+    http.HandleFunc("/health", healthHandler)
+    
+    // NEW endpoint
+    http.HandleFunc("/payments/health", paymentsHealthHandler)
 
     port := os.Getenv("PORT")
     if port == "" {

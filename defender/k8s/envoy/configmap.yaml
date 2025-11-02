@@ -24,6 +24,16 @@ data:
                 - name: backend
                   domains: ["*"]
                   routes:
+                  - match: { prefix: "/auth" }
+                    route: { cluster: auth_service }
+                  - match: { prefix: "/users" }
+                    route: { cluster: user_service }
+                  - match: { prefix: "/payments" }
+                    route: { cluster: payment_service }
+                  - match: { prefix: "/admin" }
+                    route: { cluster: auth_service }
+                  - match: { prefix: "/health" }
+                    route: { cluster: user_service }
                   - match: { prefix: "/" }
                     route: { cluster: user_service }
               http_filters:
@@ -56,6 +66,34 @@ data:
                 address:
                   socket_address:
                     address: user-service.zero-trust-demo.svc.cluster.local
+                    port_value: 8080
+      
+      - name: auth_service
+        connect_timeout: 0.5s
+        type: LOGICAL_DNS
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: auth_service
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: auth-service.zero-trust-demo.svc.cluster.local
+                    port_value: 8080
+      
+      - name: payment_service
+        connect_timeout: 0.5s
+        type: LOGICAL_DNS
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: payment_service
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: payment-service.zero-trust-demo.svc.cluster.local
                     port_value: 8080
       
       - name: opa_service

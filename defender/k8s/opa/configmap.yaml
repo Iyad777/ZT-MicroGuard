@@ -12,14 +12,35 @@ data:
     # Default deny
     default allow := false
 
-    # Allow payment service to access /user-data
+    # Allow payment service to access /users/data
     allow if {
         input.attributes.request.http.method == "GET"
-        input.attributes.request.http.path == "/user-data"
+        input.attributes.request.http.path == "/users/data"
         input.attributes.request.http.headers["x-spiffe-id"] == "spiffe://example.org/payment-service"
+    }
+
+    # Allow auth service to access its own admin
+    allow if {
+        input.attributes.request.http.method == "GET"
+        input.attributes.request.http.path == "/auth/admin"
+        input.attributes.request.http.headers["x-spiffe-id"] == "spiffe://example.org/auth-service"
     }
 
     # Allow health checks for everyone
     allow if {
         input.attributes.request.http.path == "/health"
+    }
+
+    # Allow service-specific health checks
+    allow if {
+        input.attributes.request.http.path == "/users/health"
+    }
+    allow if {
+        input.attributes.request.http.path == "/auth/health" 
+    }
+    allow if {
+        input.attributes.request.http.path == "/payments/health"
+    }
+    allow if {
+        input.attributes.request.http.path == "/malicious/health"
     }

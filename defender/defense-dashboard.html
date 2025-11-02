@@ -133,180 +133,174 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <script>
-        lucide.createIcons();
+    lucide.createIcons();
 
-        let stats = {
-            total: 0,
-            allowed: 0,
-            blocked: 0
-        };
+    let stats = {
+        total: 0,
+        allowed: 0,
+        blocked: 0
+    };
 
-        function updateStats() {
-            document.getElementById('totalRequests').textContent = stats.total;
-            document.getElementById('allowedCount').textContent = stats.allowed;
-            document.getElementById('blockedCount').textContent = stats.blocked;
-            
-            const blockRate = stats.total > 0 ? Math.round((stats.blocked / stats.total) * 100) : 0;
-            document.getElementById('blockRate').textContent = `${blockRate}%`;
+    function updateStats() {
+        document.getElementById('totalRequests').textContent = stats.total;
+        document.getElementById('allowedCount').textContent = stats.allowed;
+        document.getElementById('blockedCount').textContent = stats.blocked;
+        
+        const blockRate = stats.total > 0 ? Math.round((stats.blocked / stats.total) * 100) : 0;
+        document.getElementById('blockRate').textContent = `${blockRate}%`;
+    }
+
+    function addSecurityEvent(event) {
+        const log = document.getElementById('securityLog');
+        const timestamp = new Date().toLocaleTimeString();
+        
+        // Clear placeholder
+        if (log.querySelector('.text-gray-500')) {
+            log.innerHTML = '';
         }
 
-        function addSecurityEvent(event) {
-            const log = document.getElementById('securityLog');
-            const timestamp = new Date().toLocaleTimeString();
-            
-            // Clear placeholder
-            if (log.querySelector('.text-gray-500')) {
-                log.innerHTML = '';
-            }
-
-            // Update stats
-            stats.total++;
-            if (event.decision === 'allowed') {
-                stats.allowed++;
-            } else {
-                stats.blocked++;
-            }
-            updateStats();
-
-            // Update threat indicator
-            if (event.decision === 'blocked') {
-                const indicator = document.getElementById('threatIndicator');
-                indicator.innerHTML = `
-                    <div class="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
-                    <span class="text-xl font-semibold text-red-400">ATTACK DETECTED</span>
-                `;
-                setTimeout(() => {
-                    indicator.innerHTML = `
-                        <div class="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
-                        <span class="text-xl font-semibold">SECURE</span>
-                    `;
-                }, 3000);
-            }
-            
-            const isAllowed = event.decision === 'allowed';
-            const entry = document.createElement('div');
-            entry.className = `p-4 rounded-lg border transition-all ${
-                isAllowed 
-                    ? 'bg-green-500/5 border-green-500/30 hover:bg-green-500/10' 
-                    : 'bg-red-500/10 border-red-500/50 hover:bg-red-500/20'
-            }`;
-            
-            entry.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4 flex-1">
-                        <div class="p-2 rounded-lg ${isAllowed ? 'bg-green-500/20' : 'bg-red-500/20'}">
-                            <i data-lucide="${isAllowed ? 'check-circle' : 'shield-alert'}" 
-                               class="w-5 h-5 ${isAllowed ? 'text-green-400' : 'text-red-400'}"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-1">
-                                <span class="font-mono text-sm text-purple-400">${event.service}</span>
-                                <span class="text-gray-500">→</span>
-                                <span class="font-mono text-sm text-blue-400">${event.method} ${event.path}</span>
-                            </div>
-                            <div class="text-xs text-gray-400 font-mono">${event.spiffeId}</div>
-                            ${!isAllowed ? `<div class="text-xs text-red-400 mt-1">🛡️ Lateral movement blocked by Zero Trust policy</div>` : ''}
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                            isAllowed 
-                                ? 'bg-green-500/20 text-green-400' 
-                                : 'bg-red-500/20 text-red-400'
-                        }">
-                            ${isAllowed ? '✓ ALLOWED' : '✗ BLOCKED'}
-                        </span>
-                        <span class="text-gray-500 text-sm">${timestamp}</span>
-                    </div>
-                </div>
-            `;
-            
-            log.insertBefore(entry, log.firstChild);
-            lucide.createIcons();
-
-            // Add to attack visualization if blocked
-            if (!isAllowed) {
-                addAttackVisualization(event);
-            }
-
-            // Keep only last 20 events
-            while (log.children.length > 20) {
-                log.removeChild(log.lastChild);
-            }
+        // Update stats
+        stats.total++;
+        if (event.decision === 'allowed') {
+            stats.allowed++;
+        } else {
+            stats.blocked++;
         }
+        updateStats();
 
-        function addAttackVisualization(event) {
-            const viz = document.getElementById('attackVisualization');
-            const timestamp = new Date().toLocaleTimeString();
-            
-            const card = document.createElement('div');
-            card.className = 'bg-red-500/10 border border-red-500/30 rounded-lg p-4 animate-pulse';
-            card.innerHTML = `
-                <div class="flex items-center gap-2 mb-2">
-                    <i data-lucide="alert-octagon" class="w-5 h-5 text-red-400"></i>
-                    <span class="font-semibold text-red-400">Attack Blocked</span>
-                </div>
-                <div class="text-sm space-y-1">
-                    <div><span class="text-gray-400">Time:</span> ${timestamp}</div>
-                    <div><span class="text-gray-400">Attacker:</span> <span class="text-purple-400 font-mono">${event.service}</span></div>
-                    <div><span class="text-gray-400">Target:</span> <span class="text-blue-400 font-mono">${event.path}</span></div>
-                    <div><span class="text-gray-400">Reason:</span> <span class="text-red-400">Policy violation</span></div>
-                </div>
+        // Update threat indicator
+        if (event.decision === 'blocked') {
+            const indicator = document.getElementById('threatIndicator');
+            indicator.innerHTML = `
+                <div class="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
+                <span class="text-xl font-semibold text-red-400">ATTACK DETECTED</span>
             `;
-            
-            viz.insertBefore(card, viz.firstChild);
-            lucide.createIcons();
-            
-            // Remove animation after 2 seconds
             setTimeout(() => {
-                card.classList.remove('animate-pulse');
-            }, 2000);
-
-            // Keep only last 6 attacks
-            while (viz.children.length > 6) {
-                viz.removeChild(viz.lastChild);
-            }
-        }
-
-        // Simulate monitoring (replace with actual API calls)
-        function simulateMonitoring() {
-            const services = ['payment-service', 'malicious-service', 'auth-service'];
-            const paths = ['/user-data', '/health', '/api/transactions'];
-            
-            setInterval(() => {
-                const service = services[Math.floor(Math.random() * services.length)];
-                const path = paths[Math.floor(Math.random() * paths.length)];
-                
-                let decision = 'blocked';
-                if (service === 'payment-service' && path === '/user-data') {
-                    decision = 'allowed';
-                } else if (path === '/health') {
-                    decision = 'allowed';
-                } else if (Math.random() > 0.7) {
-                    decision = 'allowed';
-                }
-                
-                addSecurityEvent({
-                    service,
-                    path,
-                    method: 'GET',
-                    decision,
-                    spiffeId: `spiffe://example.org/${service}`
-                });
+                indicator.innerHTML = `
+                    <div class="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
+                    <span class="text-xl font-semibold">SECURE</span>
+                `;
             }, 3000);
         }
+        
+        const isAllowed = event.decision === 'allowed';
+        const entry = document.createElement('div');
+        entry.className = `p-4 rounded-lg border transition-all ${
+            isAllowed 
+                ? 'bg-green-500/5 border-green-500/30 hover:bg-green-500/10' 
+                : 'bg-red-500/10 border-red-500/50 hover:bg-red-500/20'
+        }`;
+        
+        entry.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4 flex-1">
+                    <div class="p-2 rounded-lg ${isAllowed ? 'bg-green-500/20' : 'bg-red-500/20'}">
+                        <i data-lucide="${isAllowed ? 'check-circle' : 'shield-alert'}" 
+                           class="w-5 h-5 ${isAllowed ? 'text-green-400' : 'text-red-400'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="font-mono text-sm text-purple-400">${event.service}</span>
+                            <span class="text-gray-500">→</span>
+                            <span class="font-mono text-sm text-blue-400">${event.method} ${event.path}</span>
+                        </div>
+                        <div class="text-xs text-gray-400 font-mono">${event.spiffeId}</div>
+                        ${!isAllowed ? `<div class="text-xs text-red-400 mt-1">🛡️ Lateral movement blocked by Zero Trust policy</div>` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                        isAllowed 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                    }">
+                        ${isAllowed ? '✓ ALLOWED' : '✗ BLOCKED'}
+                    </span>
+                    <span class="text-gray-500 text-sm">${timestamp}</span>
+                </div>
+            </div>
+        `;
+        
+        log.insertBefore(entry, log.firstChild);
+        lucide.createIcons();
 
-        // Start monitoring
-        addSecurityEvent({
-            service: 'payment-service',
-            path: '/user-data',
-            method: 'GET',
-            decision: 'allowed',
-            spiffeId: 'spiffe://example.org/payment-service'
-        });
+        // Add to attack visualization if blocked
+        if (!isAllowed) {
+            addAttackVisualization(event);
+        }
 
-        // Uncomment to enable auto-simulation
-        // simulateMonitoring();
+        // Keep only last 20 events
+        while (log.children.length > 20) {
+            log.removeChild(log.lastChild);
+        }
+    }
+
+    function addAttackVisualization(event) {
+        const viz = document.getElementById('attackVisualization');
+        const timestamp = new Date().toLocaleTimeString();
+        
+        const card = document.createElement('div');
+        card.className = 'bg-red-500/10 border border-red-500/30 rounded-lg p-4 animate-pulse';
+        card.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="alert-octagon" class="w-5 h-5 text-red-400"></i>
+                <span class="font-semibold text-red-400">Attack Blocked</span>
+            </div>
+            <div class="text-sm space-y-1">
+                <div><span class="text-gray-400">Time:</span> ${timestamp}</div>
+                <div><span class="text-gray-400">Attacker:</span> <span class="text-purple-400 font-mono">${event.service}</span></div>
+                <div><span class="text-gray-400">Target:</span> <span class="text-blue-400 font-mono">${event.path}</span></div>
+                <div><span class="text-gray-400">Reason:</span> <span class="text-red-400">Policy violation</span></div>
+            </div>
+        `;
+        
+        viz.insertBefore(card, viz.firstChild);
+        lucide.createIcons();
+        
+        // Remove animation after 2 seconds
+        setTimeout(() => {
+            card.classList.remove('animate-pulse');
+        }, 2000);
+
+        // Keep only last 6 attacks
+        while (viz.children.length > 6) {
+            viz.removeChild(viz.lastChild);
+        }
+    }
+
+    // Real OPA log streaming
+    function connectToOPAStream() {
+        const eventSource = new EventSource('/api/stream');
+        
+        eventSource.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'security_event') {
+                    addSecurityEvent(data);
+                }
+            } catch (e) {
+                console.error('Error parsing SSE data:', e);
+            }
+        };
+        
+        eventSource.onerror = function(event) {
+            console.error('SSE error:', event);
+            // Attempt to reconnect after 5 seconds
+            setTimeout(connectToOPAStream, 5000);
+        };
+        
+        // Also fetch initial events
+        fetch('/api/events')
+            .then(response => response.json())
+            .then(events => {
+                events.forEach(event => addSecurityEvent(event));
+            })
+            .catch(error => console.error('Error fetching initial events:', error));
+    }
+
+    // Start real monitoring
+    connectToOPAStream();
     </script>
 </body>
 </html>

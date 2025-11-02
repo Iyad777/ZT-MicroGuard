@@ -8,7 +8,6 @@ import (
     "os"
 )
 
-// Define the response structure
 type UserData struct {
     ID       string  `json:"id"`
     Username string  `json:"username"`
@@ -17,21 +16,17 @@ type UserData struct {
     Service  string  `json:"service"`
 }
 
-// Handler for the protected endpoint
+// Existing handler
 func userDataHandler(w http.ResponseWriter, r *http.Request) {
-    // Envoy/OPA acts as the access control point. 
-    // The service trusts the identity provided in the X-Spiffe-Id header.
     callerID := r.Header.Get("X-Spiffe-Id")
     
     if callerID == "" {
-        // This should theoretically not happen if Envoy is configured correctly.
         http.Error(w, `{"error": "Authentication failed: No SPIFFE ID provided by proxy"}`, http.StatusUnauthorized)
         return
     }
 
     log.Printf("ACCESS GRANTED: Request for user-data from caller ID: %s", callerID)
 
-    // Mock sensitive data response
     data := UserData{
         ID:       "user-123",
         Username: "demo_user",
@@ -45,15 +40,31 @@ func userDataHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(data)
 }
 
-// Simple health check
+// NEW: Handler for /users/data (same as /user-data but with prefix)
+func usersDataHandler(w http.ResponseWriter, r *http.Request) {
+    userDataHandler(w, r) // Reuse the same logic
+}
+
+// NEW: Handler for /users/health
+func usersHealthHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, `{"status": "ok", "service": "user-service", "endpoint": "users-health"}`)
+}
+
+// Existing health handler
 func healthHandler(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     fmt.Fprint(w, `{"status": "ok", "service": "user-service"}`)
 }
 
 func main() {
+    // Existing endpoints
     http.HandleFunc("/user-data", userDataHandler)
     http.HandleFunc("/health", healthHandler)
+    
+    // NEW endpoints for prefixed routes
+    http.HandleFunc("/users/data", usersDataHandler)
+    http.HandleFunc("/users/health", usersHealthHandler)
 
     port := os.Getenv("PORT")
     if port == "" {

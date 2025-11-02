@@ -12,12 +12,23 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprint(w, `{"message": "Malicious Service is running. It will be DENIED access."}`)
 }
 
+// NEW: Prefixed health endpoint
+func maliciousHealthHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, `{"status": "ok", "service": "malicious-service", "endpoint": "malicious-health"}`)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprint(w, `{"status": "ok", "service": "malicious-service"}`)
+}
+
 func main() {
     http.HandleFunc("/", rootHandler)
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.WriteHeader(http.StatusOK)
-        fmt.Fprint(w, `{"status": "ok", "service": "malicious-service"}`)
-    })
+    http.HandleFunc("/health", healthHandler)
+    
+    // NEW endpoint
+    http.HandleFunc("/malicious/health", maliciousHealthHandler)
 
     port := os.Getenv("PORT")
     if port == "" {
