@@ -29,7 +29,7 @@ kubectl apply -f k8s/spire/entries.yaml
 # Wait for registration job to complete
 echo "⏳ Waiting for registration to complete..."
 sleep 5
-kubectl wait --for=condition=complete job/spire-registration -n spire-system --timeout=120s
+kubectl wait --for=condition=complete job/spire-registration -n spire-system --timeout=180s
 
 echo "⚖️ Deploying OPA (Policy Engine)..."
 kubectl apply -f k8s/opa/configmap.yaml
