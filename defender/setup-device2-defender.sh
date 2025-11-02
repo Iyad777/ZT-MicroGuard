@@ -221,13 +221,11 @@ echo "🛡️  Starting Defense Dashboard Server..."
 echo "   This will show real-time attack blocking"
 echo ""
 
-if [ ! -d "defense-dashboard" ]; then
-    echo "❌ Error: defense-dashboard directory not found!"
+if [ ! -f "defense-server.js" ]; then
+    echo "❌ Error: defense-server.js not found!"
     echo "   Please ensure the dashboard files are present"
     exit 1
 fi
-
-cd defense-dashboard
 
 echo "╔══════════════════════════════════════════════════╗"
 echo "║     🛡️  DEFENSE DASHBOARD RUNNING               ║"
@@ -247,7 +245,7 @@ echo "   Press Ctrl+C to stop"
 echo ""
 
 # Start the dashboard server
-npm start
+node defense-server.js
 
 # Cleanup on exit
 trap "echo ''; echo '🧹 Cleaning up...'; kill $TUNNEL_PID 2>/dev/null || true" EXIT
