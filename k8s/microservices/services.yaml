@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: zero-trust-demo
+spec:
+  selector:
+    app: user-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: zero-trust-demo
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: zero-trust-demo
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: malicious-service
+  namespace: zero-trust-demo
+spec:
+  selector:
+    app: malicious-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

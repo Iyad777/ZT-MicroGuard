@@ -1,0 +1,100 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spire-registration
+  namespace: spire-system
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      serviceAccountName: spire-server
+      restartPolicy: OnFailure
+      containers:
+      - name: register
+        image: ghcr.io/spiffe/spire-server:1.7.0
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -e
+          
+          echo "Waiting for SPIRE server to be ready..."
+          echo "Using server address: spire-server.spire-system.svc.cluster.local:8081"
+          echo ""
+          
+          # Wait for SPIRE server to be reachable
+          max_attempts=30
+          attempt=0
+          
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt+1))
+            echo "Attempt $attempt/$max_attempts: Testing SPIRE server connection..."
+            
+            # Use entry show as a health check (avoids nc dependency)
+            if /opt/spire/bin/spire-server entry show -serverAddress spire-server.spire-system.svc.cluster.local:8081 >/dev/null 2>&1; then
+              echo "✅ SPIRE server is ready!"
+              break
+            fi
+            
+            if [ $attempt -lt $max_attempts ]; then
+              echo "   Server not ready, waiting 5 seconds..."
+              sleep 5
+            fi
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "❌ Timeout waiting for SPIRE server"
+            exit 1
+          fi
+          
+          echo ""
+          echo "Registering service identities..."
+          echo "=================================="
+          
+          # Register Auth Service
+          echo ""
+          echo "📝 Registering auth-service..."
+          /opt/spire/bin/spire-server entry create \
+            -serverAddress spire-server.spire-system.svc.cluster.local:8081 \
+            -spiffeID spiffe://example.org/auth-service \
+            -parentID spiffe://example.org/ns/spire-system/sa/spire-agent \
+            -selector k8s:ns:zero-trust-demo \
+            -selector k8s:sa:auth-service || echo "⚠️  Entry may already exist"
+          
+          # Register User Service
+          echo ""
+          echo "📝 Registering user-service..."
+          /opt/spire/bin/spire-server entry create \
+            -serverAddress spire-server.spire-system.svc.cluster.local:8081 \
+            -spiffeID spiffe://example.org/user-service \
+            -parentID spiffe://example.org/ns/spire-system/sa/spire-agent \
+            -selector k8s:ns:zero-trust-demo \
+            -selector k8s:sa:user-service || echo "⚠️  Entry may already exist"
+          
+          # Register Payment Service (Legitimate)
+          echo ""
+          echo "📝 Registering payment-service..."
+          /opt/spire/bin/spire-server entry create \
+            -serverAddress spire-server.spire-system.svc.cluster.local:8081 \
+            -spiffeID spiffe://example.org/payment-service \
+            -parentID spiffe://example.org/ns/spire-system/sa/spire-agent \
+            -selector k8s:ns:zero-trust-demo \
+            -selector k8s:sa:payment-service || echo "⚠️  Entry may already exist"
+          
+          # Register Malicious Service (Attacker)
+          echo ""
+          echo "📝 Registering malicious-service..."
+          /opt/spire/bin/spire-server entry create \
+            -serverAddress spire-server.spire-system.svc.cluster.local:8081 \
+            -spiffeID spiffe://example.org/malicious-service \
+            -parentID spiffe://example.org/ns/spire-system/sa/spire-agent \
+            -selector k8s:ns:zero-trust-demo \
+            -selector k8s:sa:malicious-service || echo "⚠️  Entry may already exist"
+          
+          echo ""
+          echo "✅ Registration complete!"
+          echo ""
+          
+          # Show registered entries
+          echo "📋 Registered entries:"
+          /opt/spire/bin/spire-server entry show \
+            -serverAddress spire-server.spire-system.svc.cluster.local:8081 | head -50 || true
