@@ -23,7 +23,7 @@ const server = http.createServer((req, res) => {
   if (req.url === '/') {
     // Serve the attack dashboard
     const fs = require('fs');
-    fs.readFile('attacker-dashboard.html', (err, data) => {
+    fs.readFile('attack-dashboard.html', (err, data) => {
       if (err) {
         res.writeHead(404);
         res.end('Dashboard not found');
